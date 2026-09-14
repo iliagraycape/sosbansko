@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./safety.css";
 import "./reaction-engine.css";
+import "./communication.css";
 
 export const metadata: Metadata = {
   title: "SOS Bansko | Бърза реакция в критичните минути",
