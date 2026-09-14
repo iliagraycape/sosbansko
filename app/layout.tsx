@@ -5,8 +5,8 @@ import "./reaction-engine.css";
 import "./communication.css";
 
 export const metadata: Metadata = {
-  title: "SOS Bansko | Бърза реакция в критичните минути",
-  description: "Мобилна система за бърза реакция на проверени доброволци и спасители в Банско и района. Първо 112 — SOS Bansko подпомага, не заменя спешните служби.",
+  title: "SOS Bansko | Доброволна мрежа за бърза реакция",
+  description: "Мобилна система за бърза локална реакция на одобрени доброволци в Банско и района. При непосредствена опасност се обадете отделно на 112.",
 };
 
 export const viewport: Viewport = {
