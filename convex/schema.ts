@@ -7,6 +7,8 @@ export default defineSchema({
     role: v.union(v.literal("reporter"), v.literal("responder"), v.literal("admin")),
     displayName: v.string(),
     phone: v.optional(v.string()),
+    identityVerified: v.boolean(),
+    identitySource: v.optional(v.union(v.literal("bansko_account"), v.literal("admin"))),
     approved: v.boolean(),
     responderCategoryIds: v.optional(v.array(v.id("responderCategories"))),
     lastLatitude: v.optional(v.number()),
@@ -14,7 +16,10 @@ export default defineSchema({
     lastLocationAt: v.optional(v.number()),
     pushToken: v.optional(v.string()),
     telegramChatId: v.optional(v.string()),
-  }).index("by_external_user", ["externalUserId"]).index("by_role", ["role"]),
+  })
+    .index("by_external_user", ["externalUserId"])
+    .index("by_role", ["role"])
+    .index("by_phone", ["phone"]),
 
   responderCategories: defineTable({
     name: v.string(),
@@ -28,19 +33,42 @@ export default defineSchema({
     title: v.string(),
     details: v.optional(v.string()),
     severity: v.union(v.literal("critical"), v.literal("urgent"), v.literal("assistance")),
-    status: v.union(v.literal("new"), v.literal("dispatching"), v.literal("responding"), v.literal("resolved"), v.literal("rejected")),
+    status: v.union(
+      v.literal("new"),
+      v.literal("dispatching"),
+      v.literal("responding"),
+      v.literal("resolved"),
+      v.literal("rejected")
+    ),
+
     reporterUserId: v.optional(v.id("users")),
     guestSessionId: v.optional(v.string()),
+    reporterName: v.string(),
+    reporterPhone: v.string(),
+    reporterIdentityVerified: v.boolean(),
+    reporterIdentitySource: v.union(
+      v.literal("bansko_account"),
+      v.literal("admin"),
+      v.literal("guest_contact")
+    ),
+    reporterCanReceiveCallback: v.boolean(),
+
     latitude: v.number(),
     longitude: v.number(),
     accuracyMeters: v.optional(v.number()),
     locationLabel: v.optional(v.string()),
     mediaStorageIds: v.array(v.id("_storage")),
+
     trustScore: v.number(),
     fraudFlags: v.array(v.string()),
+    corroborationCount: v.number(),
+    callbackConfirmedAt: v.optional(v.number()),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
-  }).index("by_status", ["status"]).index("by_created", ["createdAt"]),
+  })
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"])
+    .index("by_reporter_phone", ["reporterPhone"]),
 
   dispatches: defineTable({
     incidentId: v.id("incidents"),
@@ -49,10 +77,19 @@ export default defineSchema({
     estimatedArrivalMinutes: v.optional(v.number()),
     priorityRank: v.number(),
     channel: v.union(v.literal("push"), v.literal("telegram"), v.literal("internal")),
-    status: v.union(v.literal("queued"), v.literal("sent"), v.literal("accepted"), v.literal("declined"), v.literal("expired"), v.literal("forwarded")),
+    status: v.union(
+      v.literal("queued"),
+      v.literal("sent"),
+      v.literal("accepted"),
+      v.literal("declined"),
+      v.literal("expired"),
+      v.literal("forwarded")
+    ),
     sentAt: v.optional(v.number()),
     respondedAt: v.optional(v.number()),
-  }).index("by_incident", ["incidentId"]).index("by_responder", ["responderId"]),
+  })
+    .index("by_incident", ["incidentId"])
+    .index("by_responder", ["responderId"]),
 
   incidentEvents: defineTable({
     incidentId: v.id("incidents"),
