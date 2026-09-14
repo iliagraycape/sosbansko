@@ -13,15 +13,38 @@ const operationalPriority = v.union(
   v.literal("normal")
 );
 
+const rescueRole = v.union(
+  v.literal("chief"),
+  v.literal("lead"),
+  v.literal("responder")
+);
+
+const rescueAccessStatus = v.union(
+  v.literal("active"),
+  v.literal("suspended")
+);
+
 export default defineSchema({
-  users: defineTable({
-    externalUserId: v.optional(v.string()),
-    role: v.union(v.literal("reporter"), v.literal("responder"), v.literal("admin")),
+  reporterAccounts: defineTable({
+    banskoUserId: v.string(),
     displayName: v.string(),
     phone: v.optional(v.string()),
-    identityVerified: v.boolean(),
-    identitySource: v.optional(v.union(v.literal("bansko_account"), v.literal("admin"))),
-    approved: v.boolean(),
+    active: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_bansko_user", ["banskoUserId"])
+    .index("by_phone", ["phone"]),
+
+  rescueAccounts: defineTable({
+    role: rescueRole,
+    displayName: v.string(),
+    phone: v.optional(v.string()),
+    accessStatus: rescueAccessStatus,
+    createdByRescueAccountId: v.optional(v.id("rescueAccounts")),
+    suspendedByRescueAccountId: v.optional(v.id("rescueAccounts")),
+    suspendedAt: v.optional(v.number()),
+    suspensionReason: v.optional(v.string()),
     responderCategoryIds: v.optional(v.array(v.id("responderCategories"))),
     responderAvailability: v.optional(availability),
     responderSkills: v.optional(v.array(v.string())),
@@ -34,11 +57,13 @@ export default defineSchema({
     lastLocationAt: v.optional(v.number()),
     pushToken: v.optional(v.string()),
     telegramChatId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
   })
-    .index("by_external_user", ["externalUserId"])
     .index("by_role", ["role"])
-    .index("by_phone", ["phone"])
-    .index("by_availability", ["responderAvailability"]),
+    .index("by_access_status", ["accessStatus"])
+    .index("by_availability", ["responderAvailability"])
+    .index("by_phone", ["phone"]),
 
   responderCategories: defineTable({
     name: v.string(),
@@ -66,14 +91,13 @@ export default defineSchema({
     usefulEquipment: v.optional(v.array(v.string())),
     safetyInstruction: v.optional(v.string()),
 
-    reporterUserId: v.optional(v.id("users")),
+    reporterType: v.union(v.literal("registered"), v.literal("guest")),
+    reporterAccountId: v.optional(v.id("reporterAccounts")),
     guestSessionId: v.optional(v.string()),
     reporterName: v.string(),
     reporterPhone: v.string(),
-    reporterIdentityVerified: v.boolean(),
     reporterIdentitySource: v.union(
       v.literal("bansko_account"),
-      v.literal("admin"),
       v.literal("guest_contact")
     ),
     reporterCanReceiveCallback: v.boolean(),
@@ -92,18 +116,19 @@ export default defineSchema({
     fraudFlags: v.array(v.string()),
     corroborationCount: v.number(),
     callbackConfirmedAt: v.optional(v.number()),
-    coordinatorUserId: v.optional(v.id("users")),
+    coordinatorRescueAccountId: v.optional(v.id("rescueAccounts")),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
   })
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"])
     .index("by_reporter_phone", ["reporterPhone"])
+    .index("by_reporter_account", ["reporterAccountId"])
     .index("by_status_priority", ["status", "operationalPriority"]),
 
   dispatches: defineTable({
     incidentId: v.id("incidents"),
-    responderId: v.id("users"),
+    responderId: v.id("rescueAccounts"),
     distanceMeters: v.number(),
     estimatedArrivalMinutes: v.optional(v.number()),
     priorityRank: v.number(),
@@ -132,7 +157,7 @@ export default defineSchema({
 
   incidentParticipants: defineTable({
     incidentId: v.id("incidents"),
-    userId: v.id("users"),
+    rescueAccountId: v.id("rescueAccounts"),
     role: v.union(v.literal("coordinator"), v.literal("responder"), v.literal("observer")),
     status: v.union(
       v.literal("invited"),
@@ -145,11 +170,11 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_incident", ["incidentId"])
-    .index("by_user", ["userId"]),
+    .index("by_rescue_account", ["rescueAccountId"]),
 
   incidentUpdates: defineTable({
     incidentId: v.id("incidents"),
-    actorUserId: v.optional(v.id("users")),
+    actorRescueAccountId: v.optional(v.id("rescueAccounts")),
     type: v.union(
       v.literal("system"),
       v.literal("status"),
@@ -162,7 +187,8 @@ export default defineSchema({
 
   incidentLocationTrail: defineTable({
     incidentId: v.id("incidents"),
-    userId: v.optional(v.id("users")),
+    reporterAccountId: v.optional(v.id("reporterAccounts")),
+    rescueAccountId: v.optional(v.id("rescueAccounts")),
     source: v.union(v.literal("reporter"), v.literal("responder"), v.literal("system")),
     latitude: v.number(),
     longitude: v.number(),
@@ -171,11 +197,23 @@ export default defineSchema({
     recordedAt: v.number(),
   })
     .index("by_incident", ["incidentId"])
-    .index("by_user", ["userId"]),
+    .index("by_reporter_account", ["reporterAccountId"])
+    .index("by_rescue_account", ["rescueAccountId"]),
+
+  rescueAccessEvents: defineTable({
+    rescueAccountId: v.id("rescueAccounts"),
+    actorRescueAccountId: v.id("rescueAccounts"),
+    action: v.union(v.literal("created"), v.literal("activated"), v.literal("suspended")),
+    reason: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_rescue_account", ["rescueAccountId"])
+    .index("by_actor", ["actorRescueAccountId"]),
 
   incidentEvents: defineTable({
     incidentId: v.id("incidents"),
-    actorUserId: v.optional(v.id("users")),
+    actorReporterAccountId: v.optional(v.id("reporterAccounts")),
+    actorRescueAccountId: v.optional(v.id("rescueAccounts")),
     type: v.string(),
     message: v.optional(v.string()),
     createdAt: v.number(),
