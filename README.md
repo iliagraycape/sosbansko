@@ -1,47 +1,65 @@
 # SOS Bansko
 
-SOS Bansko is a community rapid-response platform for Bansko and the surrounding area.
+SOS Bansko is an independent community rapid-response platform for Bansko and the surrounding area.
 
-Important: it does not replace 112. In a life-threatening emergency the reporter must call 112 first. SOS Bansko is designed to shorten the time until a verified nearby person can provide safe first assistance while official emergency services are responding.
+The system coordinates its own approved volunteer network. It is not connected to 112 and does not send incidents, location data, media or contact details to 112.
 
-## V1 included
+For a life-threatening emergency, the reporter should separately call 112. SOS Bansko is intended to help nearby approved volunteers react quickly while the local volunteer team coordinates through the app.
+
+## Current foundation
 
 - Mobile-first Next.js interface
-- Fast incident categories for critical scenarios
-- Automatic high-accuracy browser geolocation
+- Fast critical-incident reporting
+- Dedicated "Аз съм в опасност" flow
+- High-accuracy browser geolocation
+- Manual location fallback
 - Photo/video capture input
-- Guest reporting UX
-- Responder view with `Да, тръгвам` / `Не, няма да успея`
-- Forward-to-next-responder flow in the UI
+- Reporter name and callback phone
+- Responder acceptance flow: `Да, тръгвам` / `Не мога` / `Пристигнах`
+- Protected reporter chat after a responder accepts an incident
+- Protected reporter phone access after a responder accepts an incident
+- Intelligent responder matching by distance, availability, skills and equipment
+- Incident coordination room with responder status and resources
 - Admin/operations view
-- Convex-ready schema for users, responder categories, incidents, dispatches and incident event history
-- Data fields for anonymous-report trust scoring and fraud flags
-- Environment placeholders for Bansko.be identity, Web Push and Telegram fallback
+- Convex-ready schema for incidents, dispatches, participants, chat, location trail and event history
+- Web Push and Telegram fallback placeholders
 
-## Intended dispatch flow
+## Volunteer dispatch flow
 
-1. Reporter selects an emergency type.
+1. Reporter selects the incident type.
 2. Location and optional media are attached.
-3. Backend validates the report and calculates a trust score.
-4. Approved responders are filtered by category, availability and distance.
-5. The closest qualified responders receive a high-priority push notification.
-6. The wider relevant responder network receives the general incident shout.
-7. Responders answer `going` or `cannot respond`.
-8. Unanswered priority notifications escalate to the next responders and then to Telegram fallback.
-9. Every state transition is recorded in the incident event log.
+3. The system identifies suitable approved volunteers based on the situation, availability, capabilities and distance.
+4. The highest-priority volunteers receive the incident.
+5. A volunteer accepts or declines.
+6. After acceptance, that volunteer can open a private chat with the reporter and request access to the reporter's callback number.
+7. The volunteer marks `en route` and `arrived` states.
+8. If the first volunteer cannot respond, the incident is escalated to the next suitable volunteer.
+9. The incident room coordinates the participating SOS Bansko volunteers.
+10. Every state transition is recorded in the incident event log.
 
-## Planned account model
+## Account model
 
-- `admin`: main operational account; creates and approves responder accounts.
-- `responder`: verified rescue/volunteer account with one or more capabilities.
+- `admin`: operational account that creates and approves volunteer/responder accounts.
+- `responder`: approved volunteer with defined capabilities and equipment.
 - `reporter`: authenticated Bansko.be user.
-- `guest`: may report without an account and is invited to join Bansko.be after reporting.
+- `guest`: may report without an account.
 
 There is intentionally no public self-approval flow for responders.
 
+## 112 boundary
+
+SOS Bansko and 112 are separate systems.
+
+- SOS Bansko does not automatically contact 112.
+- SOS Bansko does not currently exchange incident data with 112.
+- SOS Bansko does not represent an official emergency service.
+- When 112 is appropriate, the user should call 112 separately.
+
+This boundary should remain explicit in both product copy and implementation until a formal integration or cooperation model exists.
+
 ## Convex
 
-The first database schema lives in `convex/schema.ts`. It is prepared but not connected to a live Convex deployment yet.
+The schema lives in `convex/schema.ts`. It is prepared for the reaction-engine model but is not connected to a live Convex deployment yet.
 
 Suggested next implementation phase:
 
@@ -49,11 +67,13 @@ Suggested next implementation phase:
 - connect the Next.js provider
 - incident mutations and validation
 - media upload URLs/storage
-- responder geo matching
+- live responder location and status
+- protected incident chat
+- protected reporter contact access
 - Bansko.be identity bridge
 - PWA/service worker and Web Push
 - Telegram Bot fallback
-- anti-abuse/rate limiting and report trust scoring
+- anti-abuse/rate limiting
 - admin audit tools
 
 ## Local development
