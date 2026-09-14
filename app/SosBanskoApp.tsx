@@ -84,7 +84,7 @@ export default function SosBanskoApp() {
   const [phoneUnlocked, setPhoneUnlocked] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 1, author: "system", text: "Чатът е достъпен само за подателя и приелия responder по активния случай." },
+    { id: 1, author: "system", text: "Чатът е достъпен само за подателя и спасителя, който е приел сигнала." },
     { id: 2, author: "reporter", text: "Виждам пътеката, но не съм сигурен къде точно се намирам." },
   ]);
 
@@ -118,7 +118,7 @@ export default function SosBanskoApp() {
 
   function submitDemo() {
     if (!identityReady) {
-      setError("Въведи име и телефон за обратна връзка. Това помага срещу фалшиви сигнали и позволява бързо уточнение.");
+      setError("Въведи име и телефон за обратна връзка, за да може спасителят да се свърже с теб при нужда.");
       return;
     }
     if (!locationReady) {
@@ -138,7 +138,7 @@ export default function SosBanskoApp() {
 
   function acceptIncident() {
     setResponderAction("accepted");
-    setMessages(current => [...current, { id: Date.now(), author: "system", text: "Responder прие сигнала и е тръгнал към мястото." }]);
+    setMessages(current => [...current, { id: Date.now(), author: "system", text: "Спасител прие сигнала и е тръгнал към мястото." }]);
   }
 
   const locationText = coordinates
@@ -178,21 +178,20 @@ export default function SosBanskoApp() {
             <div className="rx-safety"><AlertTriangle size={20} /><div><strong>Безопасност за този сценарий</strong><span>{selected.safety}</span></div></div>
 
             <div className="rx-step">
-              <div className="rx-step-head"><b>2</b><div><strong>Точна локация</strong><span>GPS е основният сигнал за намиране на най-близката подходяща помощ.</span></div></div>
+              <div className="rx-step-head"><b>2</b><div><strong>Точна локация</strong><span>GPS помага най-близката подходяща помощ да стигне по-бързо до мястото.</span></div></div>
               <button className={`rx-location ${locationState}`} onClick={captureLocation}><LocateFixed size={22} /><div><strong>{locationState === "loading" ? "Прихващаме GPS…" : coordinates ? "GPS локацията е прихваната" : "Използвай текущата ми локация"}</strong><span>{coordinates ? locationText : locationState === "denied" ? "GPS не е достъпен — опиши мястото ръчно." : "Ще поискаме разрешение от телефона."}</span></div><ChevronRight /></button>
               <input className="rx-input" value={manualLocation} onChange={event => setManualLocation(event.target.value)} placeholder="Или опиши мястото: пътека, местност, път, ориентир…" />
             </div>
 
             <div className="rx-step">
-              <div className="rx-step-head"><b>3</b><div><strong>Кой подава сигнала?</strong><span>Данните не са публични. Нужни са за обратна връзка и защита от злоупотреби.</span></div></div>
-              <div className="rx-identity-note"><ShieldCheck size={19} /><span>Без платен SMS. Bansko.be профилът ще носи най-високо доверие, а гост сигналът ще се оценява по GPS, медия, история, съвпадащи репорти и обратна връзка.</span></div>
+              <div className="rx-step-head"><b>3</b><div><strong>Кой подава сигнала?</strong><span>Името и телефонът са нужни, за да може спасителят да се свърже с теб при активен сигнал. Данните не са публични.</span></div></div>
               <div className="rx-form-grid"><label><span><User size={16} /> Име и фамилия</span><input value={reporterName} onChange={event => setReporterName(event.target.value)} autoComplete="name" placeholder="Иван Петров" /></label><label><span><Phone size={16} /> Телефон</span><input value={reporterPhone} onChange={event => setReporterPhone(event.target.value)} inputMode="tel" autoComplete="tel" placeholder="+359 88 123 4567" /></label></div>
             </div>
 
-            <div className="rx-media-row"><label className="rx-media"><Camera size={24} /><strong>Снимка / видео</strong><span>{mediaName || "По желание, но силно помага за оценката"}</span><input type="file" accept="image/*,video/*" capture="environment" onChange={event => setMediaName(event.target.files?.[0]?.name ?? "")} /></label><label className="rx-details"><strong>Кратки детайли</strong><textarea value={details} onChange={event => setDetails(event.target.value)} placeholder="Колко души? Какво виждаш? Има ли допълнителен риск?" /></label></div>
+            <div className="rx-media-row"><label className="rx-media"><Camera size={24} /><strong>Снимка / видео</strong><span>{mediaName || "По желание, но може да помогне за по-бърза преценка"}</span><input type="file" accept="image/*,video/*" capture="environment" onChange={event => setMediaName(event.target.files?.[0]?.name ?? "")} /></label><label className="rx-details"><strong>Кратки детайли</strong><textarea value={details} onChange={event => setDetails(event.target.value)} placeholder="Колко души? Какво виждаш? Има ли допълнителен риск?" /></label></div>
             {error && <div className="rx-error"><AlertTriangle size={18} />{error}</div>}
-            {submitted && <div className="rx-success"><CheckCircle2 size={20} /><div><strong>Демо сигналът е приет.</strong><span>В реалната версия тук стартира intelligent dispatch. Публичното демо не изпраща реални сигнали.</span><button onClick={() => setMode("room")}>Отвори Incident Room <ChevronRight size={16} /></button></div></div>}
-            <div className={`rx-submit ${identityReady && locationReady ? "ready" : ""}`}><div><span>{selected.severity === "critical" ? "КРИТИЧЕН СИГНАЛ" : "СИГНАЛ"}</span><strong>{selected.title}</strong><small>Responders се подреждат по умения, оборудване, наличност и разстояние.</small></div><button onClick={submitDemo}><Siren size={23} /> ИЗПРАТИ SOS</button></div>
+            {submitted && <div className="rx-success"><CheckCircle2 size={20} /><div><strong>Демонстрационният сигнал е приет.</strong><span>Това е публична демонстрация и не изпраща реален сигнал към 112 или спасителни екипи.</span><button onClick={() => setMode("room")}>Виж координацията <ChevronRight size={16} /></button></div></div>}
+            <div className={`rx-submit ${identityReady && locationReady ? "ready" : ""}`}><div><span>{selected.severity === "critical" ? "КРИТИЧЕН СИГНАЛ" : "СИГНАЛ"}</span><strong>{selected.title}</strong><small>Системата насочва сигнала към най-подходящите налични спасители наблизо.</small></div><button onClick={submitDemo}><Siren size={23} /> ИЗПРАТИ SOS</button></div>
           </div>
         </section>
       )}
@@ -203,17 +202,17 @@ export default function SosBanskoApp() {
             <div className="rx-live"><span /> ПРИОРИТЕТЕН СИГНАЛ · ДЕМО</div>
             <div className="rx-priority-head"><div><Siren size={30} /></div><section><span>ТИ СИ СРЕД НАЙ-ПОДХОДЯЩИТЕ</span><h1>{selected.title}</h1><p><MapPin size={15} /> {locationText}</p></section></div>
             <div className="rx-safety"><AlertTriangle size={20} /><div><strong>Преди да тръгнеш</strong><span>{selected.safety}</span></div></div>
-            <div className="rx-contact"><User size={18} /><div><strong>{reporterName || "Иван Петров"}</strong><span>{responderAction === "accepted" || responderAction === "arrived" ? "Приел си сигнала — можеш да поискаш контакт или да отвориш чат." : "Телефонът и чатът се отключват само след приемане на сигнала."}</span></div></div>
+            <div className="rx-contact"><User size={18} /><div><strong>{reporterName || "Иван Петров"}</strong><span>{responderAction === "accepted" || responderAction === "arrived" ? "Приел си сигнала — можеш да се свържеш с подателя за повече информация." : "Контактът и чатът се отключват само след приемане на сигнала."}</span></div></div>
 
             {responderAction === "pending" && <div className="rx-actions"><button className="go" onClick={acceptIncident}><CheckCircle2 /> Да, тръгвам</button><button className="no" onClick={() => setResponderAction("declined")}><AlertTriangle /> Не мога</button></div>}
 
             {(responderAction === "accepted" || responderAction === "arrived") && <>
-              <div className="rx-accepted"><Route size={22} /><div><strong>{responderAction === "arrived" ? "На място" : "Прието · пътуваш към мястото"}</strong><span>Incident Room вижда статуса ти.</span></div>{responderAction === "accepted" ? <button onClick={() => setResponderAction("arrived")}>ПРИСТИГНАХ</button> : <button onClick={() => setMode("room")}>Incident Room</button>}</div>
+              <div className="rx-accepted"><Route size={22} /><div><strong>{responderAction === "arrived" ? "На място" : "Прието · пътуваш към мястото"}</strong><span>Останалите участници по случая виждат статуса ти.</span></div>{responderAction === "accepted" ? <button onClick={() => setResponderAction("arrived")}>ПРИСТИГНАХ</button> : <button onClick={() => setMode("room")}>Координация</button>}</div>
               <div className="rx-communication-actions">
                 <button onClick={() => setChatOpen(current => !current)}><MessageCircle size={18} /> {chatOpen ? "Затвори чата" : "Отвори чат"}</button>
                 <button onClick={() => setPhoneUnlocked(true)}><Phone size={18} /> {phoneUnlocked ? "Телефонът е достъпен" : "Поискай телефон"}</button>
               </div>
-              {phoneUnlocked && <div className="rx-phone-reveal"><ShieldCheck size={18} /><div><strong>Телефон на подателя</strong><span>{phoneValue}</span><small>Достъпен само за приелия responder по активния случай.</small></div><a href={`tel:${phoneValue}`}><Phone size={17} /> Обади се</a></div>}
+              {phoneUnlocked && <div className="rx-phone-reveal"><ShieldCheck size={18} /><div><strong>Телефон на подателя</strong><span>{phoneValue}</span><small>Достъпен само за спасителя, който е приел активния сигнал.</small></div><a href={`tel:${phoneValue}`}><Phone size={17} /> Обади се</a></div>}
               {chatOpen && <div className="rx-chat">
                 <div className="rx-chat-head"><MessageCircle size={18} /><div><strong>Чат с подателя</strong><span>За уточняване и успокояване до пристигането</span></div></div>
                 <div className="rx-chat-messages">{messages.map(message => <div key={message.id} className={`rx-chat-message ${message.author}`}><b>{message.author === "reporter" ? reporterName || "Подател" : message.author === "responder" ? "Спасител" : "Система"}</b><span>{message.text}</span></div>)}</div>
@@ -222,30 +221,30 @@ export default function SosBanskoApp() {
               </div>}
             </>}
 
-            {responderAction === "declined" && <div className="rx-declined"><strong>Приоритетът е предаден към следващия responder.</strong><span>Сигналът остава видим като общ shout, но контактът остава заключен.</span></div>}
+            {responderAction === "declined" && <div className="rx-declined"><strong>Сигналът е предаден към следващия подходящ спасител.</strong><span>Контактът с подателя остава заключен.</span></div>}
           </div>
 
-          <div className="rx-panel rx-match-panel"><div className="rx-title compact"><div><span>INTELLIGENT MATCHING</span><h2>Най-подходящи наблизо</h2></div></div><div className="rx-matches">{matches.map((match, index) => <div key={match.id} className="rx-match"><b>{index + 1}</b><div><strong>{match.name}</strong><span>{match.role}</span><small>{[...match.skillMatches, ...match.equipmentMatches].slice(0, 3).join(" · ") || "обща помощ"}</small></div><aside><strong>{match.distanceKm.toFixed(1)} км</strong><span>score {match.score}</span></aside></div>)}</div></div>
+          <div className="rx-panel rx-match-panel"><div className="rx-title compact"><div><span>ПОДХОДЯЩА ПОМОЩ</span><h2>Кой може да реагира най-бързо?</h2></div></div><div className="rx-matches">{matches.map((match, index) => <div key={match.id} className="rx-match"><b>{index + 1}</b><div><strong>{match.name}</strong><span>{match.role}</span><small>{[...match.skillMatches, ...match.equipmentMatches].slice(0, 3).join(" · ") || "обща помощ"}</small></div><aside><strong>{match.distanceKm.toFixed(1)} км</strong></aside></div>)}</div></div>
         </section>
       )}
 
       {mode === "room" && (
         <section className="rx-room">
           <div className="rx-panel rx-room-main">
-            <div className="rx-room-header"><div><span>INCIDENT ROOM · ДЕМО</span><h1>{selected.title}</h1><p><MapPin size={16} /> {locationText}</p></div><div className="rx-room-status">АКТИВЕН</div></div>
-            <div className="rx-room-metrics"><div><strong>{matches.filter(item => item.availability === "available").length}</strong><span>готови responders</span></div><div><strong>{matches[0]?.distanceKm.toFixed(1) ?? "—"} км</strong><span>най-близък подходящ</span></div><div><strong>{responderAction === "arrived" ? "1" : "0"}</strong><span>на място</span></div></div>
-            <div className="rx-room-map"><div className="rx-map-center"><Siren /></div>{matches.slice(0, 3).map((match, index) => <div key={match.id} className={`rx-map-responder p${index + 1}`}>{index + 1}</div>)}<span>Live responder positions · demo visualization</span></div>
-            <div className="rx-timeline"><div><b /><section><strong>Сигналът е създаден</strong><span>GPS + контакт + тип инцидент са налични</span></section><time>00:00</time></div><div><b /><section><strong>Intelligent matching завърши</strong><span>{matches.length} responders са подредени по приоритет</span></section><time>00:02</time></div><div className={responderAction !== "pending" ? "done" : ""}><b /><section><strong>Responder потвърждение</strong><span>{responderAction === "accepted" || responderAction === "arrived" ? "Responder е тръгнал към мястото" : responderAction === "declined" ? "Първият отказа — ескалация" : "Очаква се потвърждение"}</span></section><time>00:20</time></div><div className={responderAction === "arrived" ? "done" : ""}><b /><section><strong>Пристигане</strong><span>{responderAction === "arrived" ? "Първият responder е на място" : "Все още няма потвърдено пристигане"}</span></section><time>ETA</time></div></div>
+            <div className="rx-room-header"><div><span>КООРДИНАЦИЯ · ДЕМО</span><h1>{selected.title}</h1><p><MapPin size={16} /> {locationText}</p></div><div className="rx-room-status">АКТИВЕН</div></div>
+            <div className="rx-room-metrics"><div><strong>{matches.filter(item => item.availability === "available").length}</strong><span>готови спасители</span></div><div><strong>{matches[0]?.distanceKm.toFixed(1) ?? "—"} км</strong><span>най-близък подходящ</span></div><div><strong>{responderAction === "arrived" ? "1" : "0"}</strong><span>на място</span></div></div>
+            <div className="rx-room-map"><div className="rx-map-center"><Siren /></div>{matches.slice(0, 3).map((match, index) => <div key={match.id} className={`rx-map-responder p${index + 1}`}>{index + 1}</div>)}<span>Позиции на участниците по случая</span></div>
+            <div className="rx-timeline"><div><b /><section><strong>Сигналът е създаден</strong><span>Локацията, контактът и видът на инцидента са налични</span></section><time>00:00</time></div><div><b /><section><strong>Подходящите спасители са намерени</strong><span>{matches.length} души могат да бъдат уведомени според ситуацията и близостта</span></section><time>00:02</time></div><div className={responderAction !== "pending" ? "done" : ""}><b /><section><strong>Потвърждение от спасител</strong><span>{responderAction === "accepted" || responderAction === "arrived" ? "Спасител е тръгнал към мястото" : responderAction === "declined" ? "Първият не може — сигналът е предаден нататък" : "Очаква се потвърждение"}</span></section><time>00:20</time></div><div className={responderAction === "arrived" ? "done" : ""}><b /><section><strong>Пристигане</strong><span>{responderAction === "arrived" ? "Първият спасител е на място" : "Все още няма потвърдено пристигане"}</span></section><time>ETA</time></div></div>
           </div>
-          <aside className="rx-panel rx-room-side"><h2>Ресурси по случая</h2>{matches.slice(0, 3).map((match, index) => <div className="rx-resource" key={match.id}><span>{index + 1}</span><div><strong>{match.name}</strong><small>{match.role}</small><p><PackageCheck size={14} /> {match.equipment.slice(0, 3).join(", ")}</p></div><b>{index === 0 && responderAction === "arrived" ? "НА МЯСТО" : index === 0 && responderAction === "accepted" ? "ПЪТУВА" : "ГОТОВ"}</b></div>)}<div className="rx-room-note"><Phone size={18} /><div><strong>112 остава водещата спешна линия</strong><span>Incident Room подпомага локалната координация; не заменя официалните служби.</span></div></div></aside>
+          <aside className="rx-panel rx-room-side"><h2>Ресурси по случая</h2>{matches.slice(0, 3).map((match, index) => <div className="rx-resource" key={match.id}><span>{index + 1}</span><div><strong>{match.name}</strong><small>{match.role}</small><p><PackageCheck size={14} /> {match.equipment.slice(0, 3).join(", ")}</p></div><b>{index === 0 && responderAction === "arrived" ? "НА МЯСТО" : index === 0 && responderAction === "accepted" ? "ПЪТУВА" : "ГОТОВ"}</b></div>)}<div className="rx-room-note"><Phone size={18} /><div><strong>112 остава водещата спешна линия</strong><span>Този екран подпомага локалната координация и не заменя официалните служби.</span></div></div></aside>
         </section>
       )}
 
       {mode === "admin" && (
-        <section className="rx-admin"><div className="rx-panel rx-admin-hero"><div><span>ГЛАВЕН ЦЕНТЪР</span><h1>Готовност на спасителската мрежа</h1><p>Главният акаунт създава responders, задава категории, умения и оборудване и одобрява кой има право да получава критични сигнали.</p></div><button><Users size={18} /> Създай responder</button></div><div className="rx-admin-stats"><div><strong>24</strong><span>одобрени</span></div><div><strong>18</strong><span>налични сега</span></div><div><strong>7</strong><span>категории</span></div><div><strong>12</strong><span>ресурсни типа</span></div></div><div className="rx-grid-two"><div className="rx-panel rx-admin-card"><h2>Оперативен статус</h2><div className="rx-status-list"><span><i className="green" /> На разположение</span><span><i className="amber" /> Ограничено</span><span><i /> Недостъпен</span></div><p>Статусът и последната GPS позиция определят дали responder да бъде включен в приоритетния dispatch.</p></div><div className="rx-panel rx-admin-card"><h2>Умения и оборудване</h2><div className="rx-tags"><span>ПСС</span><span>Медик</span><span>Първа помощ</span><span>4x4</span><span>Водно спасяване</span><span>Пожари</span><span>AED</span><span>Дрон</span><span>Термокамера</span><span>Въжета</span></div></div></div></section>
+        <section className="rx-admin"><div className="rx-panel rx-admin-hero"><div><span>ГЛАВЕН ЦЕНТЪР</span><h1>Готовност на спасителската мрежа</h1><p>Главният акаунт създава спасителски профили, задава умения и оборудване и одобрява кой има право да получава критични сигнали.</p></div><button><Users size={18} /> Създай спасител</button></div><div className="rx-admin-stats"><div><strong>24</strong><span>одобрени</span></div><div><strong>18</strong><span>налични сега</span></div><div><strong>7</strong><span>категории</span></div><div><strong>12</strong><span>ресурсни типа</span></div></div><div className="rx-grid-two"><div className="rx-panel rx-admin-card"><h2>Оперативен статус</h2><div className="rx-status-list"><span><i className="green" /> На разположение</span><span><i className="amber" /> Ограничено</span><span><i /> Недостъпен</span></div><p>Наличността и последната локация помагат сигналът да стигне до хората, които могат да реагират най-бързо.</p></div><div className="rx-panel rx-admin-card"><h2>Умения и оборудване</h2><div className="rx-tags"><span>ПСС</span><span>Медик</span><span>Първа помощ</span><span>4x4</span><span>Водно спасяване</span><span>Пожари</span><span>AED</span><span>Дрон</span><span>Термокамера</span><span>Въжета</span></div></div></div></section>
       )}
 
-      <footer className="rx-footer"><span>SOS Bansko · public concept demo</span><span>Първо 112 · доброволците подпомагат, не заменят професионалните служби</span></footer>
+      <footer className="rx-footer"><span>SOS Bansko · публична демонстрация</span><span>Първо 112 · доброволците подпомагат, не заменят професионалните служби</span></footer>
     </main>
   );
 }
