@@ -7,7 +7,8 @@ export default defineSchema({
     role: v.union(v.literal("reporter"), v.literal("responder"), v.literal("admin")),
     displayName: v.string(),
     phone: v.optional(v.string()),
-    phoneVerifiedAt: v.optional(v.number()),
+    identityVerified: v.boolean(),
+    identitySource: v.optional(v.union(v.literal("bansko_account"), v.literal("admin"))),
     approved: v.boolean(),
     responderCategoryIds: v.optional(v.array(v.id("responderCategories"))),
     lastLatitude: v.optional(v.number()),
@@ -27,25 +28,6 @@ export default defineSchema({
     active: v.boolean(),
   }).index("by_slug", ["slug"]),
 
-  phoneVerifications: defineTable({
-    phone: v.string(),
-    guestSessionId: v.optional(v.string()),
-    purpose: v.literal("incident_report"),
-    codeHash: v.string(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("verified"),
-      v.literal("expired"),
-      v.literal("blocked")
-    ),
-    attemptCount: v.number(),
-    createdAt: v.number(),
-    expiresAt: v.number(),
-    verifiedAt: v.optional(v.number()),
-  })
-    .index("by_phone", ["phone"])
-    .index("by_phone_status", ["phone", "status"]),
-
   incidents: defineTable({
     type: v.string(),
     title: v.string(),
@@ -63,13 +45,13 @@ export default defineSchema({
     guestSessionId: v.optional(v.string()),
     reporterName: v.string(),
     reporterPhone: v.string(),
-    reporterPhoneVerified: v.boolean(),
-    reporterPhoneVerifiedAt: v.optional(v.number()),
-    reporterVerification: v.union(
+    reporterIdentityVerified: v.boolean(),
+    reporterIdentitySource: v.union(
       v.literal("bansko_account"),
-      v.literal("sms"),
-      v.literal("unverified")
+      v.literal("admin"),
+      v.literal("guest_contact")
     ),
+    reporterCanReceiveCallback: v.boolean(),
 
     latitude: v.number(),
     longitude: v.number(),
@@ -79,6 +61,8 @@ export default defineSchema({
 
     trustScore: v.number(),
     fraudFlags: v.array(v.string()),
+    corroborationCount: v.number(),
+    callbackConfirmedAt: v.optional(v.number()),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
   })
