@@ -136,6 +136,31 @@ export default defineSchema({
     .index("by_incident", ["incidentId"])
     .index("by_user", ["userId"]),
 
+  incidentMessages: defineTable({
+    incidentId: v.id("incidents"),
+    senderUserId: v.optional(v.id("users")),
+    senderRole: v.union(v.literal("reporter"), v.literal("responder"), v.literal("system")),
+    text: v.string(),
+    createdAt: v.number(),
+    readAt: v.optional(v.number()),
+  })
+    .index("by_incident", ["incidentId"])
+    .index("by_sender", ["senderUserId"]),
+
+  incidentContactAccess: defineTable({
+    incidentId: v.id("incidents"),
+    responderId: v.id("users"),
+    dispatchId: v.id("dispatches"),
+    chatOpenedAt: v.optional(v.number()),
+    phoneRequestedAt: v.optional(v.number()),
+    phoneRevealedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_incident", ["incidentId"])
+    .index("by_responder", ["responderId"])
+    .index("by_dispatch", ["dispatchId"]),
+
   incidentUpdates: defineTable({
     incidentId: v.id("incidents"),
     actorUserId: v.optional(v.id("users")),
