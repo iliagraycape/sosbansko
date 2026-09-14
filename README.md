@@ -4,38 +4,42 @@ SOS Bansko is an independent community rapid-response platform for Bansko and th
 
 The system coordinates its own approved volunteer network. It is not connected to 112 and does not send incidents, location data, media or contact details to 112.
 
-For a life-threatening emergency, the reporter should separately call 112. SOS Bansko is intended to help nearby approved volunteers react quickly while the local volunteer team coordinates through the app.
+For a life-threatening emergency, the reporter should separately call 112. A SOS Bansko report may still be submitted when official services have not yet been notified.
 
 ## Current foundation
 
 - Mobile-first Next.js interface
 - Fast critical-incident reporting
-- Dedicated "Аз съм в опасност" flow
+- Dedicated `Аз съм в опасност` flow
 - High-accuracy browser geolocation
 - Manual location fallback
 - Photo/video capture input
 - Reporter name and callback phone
+- Clear acknowledgement that contact details are used only for reaction to the active incident
+- Optional `112 / съответната служба е уведомена` checkbox that never blocks reporting
+- Separate operational-priority signal based on incident severity and whether services are marked as notified
+- Critical scenarios keep a high-priority floor even when services are not marked as notified
+- Reporter phone is shown directly to approved volunteers who receive the active incident
+- One-tap phone call from the responder view
 - Responder acceptance flow: `Да, тръгвам` / `Не мога` / `Пристигнах`
-- Protected reporter chat after a responder accepts an incident
-- Protected reporter phone access after a responder accepts an incident
 - Intelligent responder matching by distance, availability, skills and equipment
 - Incident coordination room with responder status and resources
 - Admin/operations view
-- Convex-ready schema for incidents, dispatches, participants, chat, location trail and event history
+- Convex-ready schema for incidents, dispatches, participants, location trail and event history
 - Web Push and Telegram fallback placeholders
 
 ## Volunteer dispatch flow
 
 1. Reporter selects the incident type.
 2. Location and optional media are attached.
-3. The system identifies suitable approved volunteers based on the situation, availability, capabilities and distance.
-4. The highest-priority volunteers receive the incident.
-5. A volunteer accepts or declines.
-6. After acceptance, that volunteer can open a private chat with the reporter and request access to the reporter's callback number.
-7. The volunteer marks `en route` and `arrived` states.
-8. If the first volunteer cannot respond, the incident is escalated to the next suitable volunteer.
-9. The incident room coordinates the participating SOS Bansko volunteers.
-10. Every state transition is recorded in the incident event log.
+3. Reporter provides a callback number and acknowledges its incident-only use.
+4. Reporter can indicate whether 112 or another appropriate service has already been notified. This is optional and never blocks the SOS Bansko report.
+5. The system derives an operational priority. Critical incident severity is never downgraded below a high-priority floor merely because services are not marked as notified.
+6. The system identifies suitable approved volunteers based on the situation, availability, capabilities and distance.
+7. Volunteers receiving the active incident can immediately see the reporter callback number and call for clarification.
+8. A volunteer accepts or declines and then marks `en route` / `arrived` states.
+9. If the first volunteer cannot respond, the incident is escalated to the next suitable volunteer.
+10. The incident room coordinates participating SOS Bansko volunteers and records state transitions.
 
 ## Account model
 
@@ -53,7 +57,8 @@ SOS Bansko and 112 are separate systems.
 - SOS Bansko does not automatically contact 112.
 - SOS Bansko does not currently exchange incident data with 112.
 - SOS Bansko does not represent an official emergency service.
-- When 112 is appropriate, the user should call 112 separately.
+- The reporter may submit to SOS Bansko before or after separately notifying 112 or another appropriate service.
+- The `servicesNotified` flag is reporter-supplied context for volunteer prioritization, not proof of official dispatch or coordination.
 
 This boundary should remain explicit in both product copy and implementation until a formal integration or cooperation model exists.
 
@@ -68,8 +73,7 @@ Suggested next implementation phase:
 - incident mutations and validation
 - media upload URLs/storage
 - live responder location and status
-- protected incident chat
-- protected reporter contact access
+- direct reporter callback access for volunteers receiving an incident
 - Bansko.be identity bridge
 - PWA/service worker and Web Push
 - Telegram Bot fallback

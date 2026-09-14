@@ -7,6 +7,12 @@ const availability = v.union(
   v.literal("offline")
 );
 
+const operationalPriority = v.union(
+  v.literal("critical"),
+  v.literal("high"),
+  v.literal("normal")
+);
+
 export default defineSchema({
   users: defineTable({
     externalUserId: v.optional(v.string()),
@@ -47,6 +53,7 @@ export default defineSchema({
     title: v.string(),
     details: v.optional(v.string()),
     severity: v.union(v.literal("critical"), v.literal("urgent"), v.literal("assistance")),
+    operationalPriority,
     status: v.union(
       v.literal("new"),
       v.literal("dispatching"),
@@ -70,6 +77,9 @@ export default defineSchema({
       v.literal("guest_contact")
     ),
     reporterCanReceiveCallback: v.boolean(),
+    dataUseAcknowledged: v.boolean(),
+    servicesNotified: v.boolean(),
+    servicesNotifiedAt: v.optional(v.number()),
 
     latitude: v.number(),
     longitude: v.number(),
@@ -88,7 +98,8 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"])
-    .index("by_reporter_phone", ["reporterPhone"]),
+    .index("by_reporter_phone", ["reporterPhone"])
+    .index("by_status_priority", ["status", "operationalPriority"]),
 
   dispatches: defineTable({
     incidentId: v.id("incidents"),
@@ -136,38 +147,12 @@ export default defineSchema({
     .index("by_incident", ["incidentId"])
     .index("by_user", ["userId"]),
 
-  incidentMessages: defineTable({
-    incidentId: v.id("incidents"),
-    senderUserId: v.optional(v.id("users")),
-    senderRole: v.union(v.literal("reporter"), v.literal("responder"), v.literal("system")),
-    text: v.string(),
-    createdAt: v.number(),
-    readAt: v.optional(v.number()),
-  })
-    .index("by_incident", ["incidentId"])
-    .index("by_sender", ["senderUserId"]),
-
-  incidentContactAccess: defineTable({
-    incidentId: v.id("incidents"),
-    responderId: v.id("users"),
-    dispatchId: v.id("dispatches"),
-    chatOpenedAt: v.optional(v.number()),
-    phoneRequestedAt: v.optional(v.number()),
-    phoneRevealedAt: v.optional(v.number()),
-    revokedAt: v.optional(v.number()),
-    createdAt: v.number(),
-  })
-    .index("by_incident", ["incidentId"])
-    .index("by_responder", ["responderId"])
-    .index("by_dispatch", ["dispatchId"]),
-
   incidentUpdates: defineTable({
     incidentId: v.id("incidents"),
     actorUserId: v.optional(v.id("users")),
     type: v.union(
       v.literal("system"),
       v.literal("status"),
-      v.literal("message"),
       v.literal("resource_request"),
       v.literal("safety")
     ),
